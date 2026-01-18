@@ -26,17 +26,12 @@ jobs:
             platform-tools
             platforms;android-33
             build-tools;33.0.2
-            cmdline-tools
+            cmdline-tools;latest
 
       - name: Accept Android SDK licenses
-        run: |
-          if [ -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
-            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
-          else
-            yes | "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" --licenses
-          fi
+        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
-      - name: Install Node
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
