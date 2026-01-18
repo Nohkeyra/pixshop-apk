@@ -1,3 +1,14 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,13 +27,15 @@
             platforms;android-33
             build-tools;33.0.2
             cmdline-tools;12.0
+          # We disable this here to prevent the hang. We do it manually in the next step.
+          accept-android-sdk-licenses: false
 
-      # FIX: Manually write license files to avoid "y/N" hang
-      - name: Accept Android SDK licenses
+      - name: Manually Accept Licenses
         run: |
           mkdir -p $ANDROID_HOME/licenses
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
           echo "601085b94cd77f0b54ff86406957099ebe79c4d6" > $ANDROID_HOME/licenses/android-googletv-license
+          # Final check to ensure all licenses are satisfied
           yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
       - name: Setup Node.js 20
@@ -47,4 +60,3 @@
         with:
           name: pixshop-apk
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
-
