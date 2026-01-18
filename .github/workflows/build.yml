@@ -19,23 +19,18 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # Step 1: Just set up the environment, do NOT install packages here
+      # Step 1: Setup SDK tools
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: 12266719
 
-      # Step 2: Accept licenses AND Install packages manually
+      # Step 2: Manually Accept Licenses & Install Packages
       - name: Install Android Packages
         run: |
-          # Create the license folder
           mkdir -p $ANDROID_HOME/licenses
-          
-          # Write the specific licenses that cause hangs
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
           echo "601085b94cd77f0b54ff86406957099ebe79c4d6" > $ANDROID_HOME/licenses/android-googletv-license
-          
-          # Install packages with 'yes' piped in to auto-accept anything else
           yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;12.0"
 
       - name: Setup Node.js 20
@@ -49,11 +44,9 @@ jobs:
       - name: Add Android Platform
         run: cordova platform add android@12.0.1
 
+      # FIX: Use Cordova CLI instead of manual Gradle wrapper
       - name: Build Debug APK
-        run: |
-          cd platforms/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+        run: cordova build android --debug --verbose
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
