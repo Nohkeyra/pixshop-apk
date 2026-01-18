@@ -57,7 +57,10 @@ jobs:
 
       - name: Inject API Key
         run: |
-          sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local
+          # Replaces placeholder in .env.local
+          sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
+          # Replaces placeholder in any JS files just in case
+          find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
