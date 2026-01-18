@@ -1,26 +1,13 @@
-name: Build APK
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Cordova Android 12 requires Java 17
       - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      # Uses the setup action but relies on PATH for the next step
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -30,11 +17,15 @@ jobs:
             build-tools;33.0.2
             cmdline-tools;12.0
 
-      # Simplified command. sdkmanager is automatically added to PATH by the previous step.
+      # FIX: Manually write license files to avoid "y/N" hang
       - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
+        run: |
+          mkdir -p $ANDROID_HOME/licenses
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "601085b94cd77f0b54ff86406957099ebe79c4d6" > $ANDROID_HOME/licenses/android-googletv-license
+          # Run sdkmanager just in case any others are missing, but pip to null to prevent log spam
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
 
-      # Node 20 (LTS) is safer for Cordova
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -56,5 +47,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pixshop-apk
-          # Added .apk extension here
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
