@@ -1,0 +1,7 @@
+{
+  "name": "Pixshop Core",
+  "description": "Urban Neural Synthesis Engine powered by Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
