@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Java 17
@@ -23,14 +23,18 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           packages: |
-            tools
             platform-tools
             platforms;android-33
             build-tools;33.0.2
+            cmdline-tools
 
       - name: Accept Android SDK licenses
         run: |
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
+          if [ -f "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+          else
+            yes | "$ANDROID_SDK_ROOT/cmdline-tools/bin/sdkmanager" --licenses
+          fi
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -40,7 +44,7 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Add Android platform
+      - name: Add Android Platform
         run: cordova platform add android@12.0.1
 
       - name: Build Debug APK
