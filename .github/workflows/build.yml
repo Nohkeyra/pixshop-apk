@@ -27,16 +27,15 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Install Android Platform (stable)
-        run: cordova platform add android@12.0.1
+      - name: Install Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          gradle-version: 8.2
 
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Build Debug APK
+      - name: Build APK
         run: |
-          cd platforms/android
-          ./gradlew assembleDebug --no-daemon
+          cordova platform add android@12.0.1
+          cordova build android --verbose
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
