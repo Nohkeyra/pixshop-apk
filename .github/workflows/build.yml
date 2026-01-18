@@ -55,14 +55,19 @@ jobs:
           cordova plugin remove cordova-plugin-whitelist || true
           cordova plugin remove cordova-plugin-splashscreen || true
 
-      # This step injects your secret key into the app before building
+      # This step finds the placeholder in your .env.local and swaps it for your secret
       - name: Inject API Key
         run: |
-          # Replace 'www/js/index.js' with the actual path to your API key file
-          # It searches for 'MISSING_API_KEY' and replaces it with your secret
-          find www -type f -name "*.js" -exec sed -i "s/MISSING_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
+          sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local
 
       - name: Build Debug APK
+        run: cordova build android --debug --verbose
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixshop-apk
+          path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
         run: cordova build android --debug --verbose
 
       - name: Upload APK
