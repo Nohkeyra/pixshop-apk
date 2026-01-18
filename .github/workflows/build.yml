@@ -44,13 +44,18 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      # FIX: Add AndroidX Adapter to fix "21 errors" (compilation failures)
+      # Install the Adapter to fix other legacy plugin issues
       - name: Add AndroidX Support
-        run: |
-          cordova plugin add cordova-plugin-androidx-adapter
-          
+        run: cordova plugin add cordova-plugin-androidx-adapter
+
       - name: Add Android Platform
         run: cordova platform add android@12.0.1
+
+      # FIX: Remove the obsolete plugin that causes the "Whitelist" crash
+      - name: Remove Incompatible Plugins
+        run: |
+          cordova plugin remove cordova-plugin-whitelist || true
+          cordova plugin remove cordova-plugin-splashscreen || true
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
