@@ -22,8 +22,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: 33
-          build-tools: "33.0.2"
+          packages: |
+            tools
+            platform-tools
+            platforms;android-33
+            build-tools;33.0.2
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses
 
       - name: Install Node
         uses: actions/setup-node@v4
