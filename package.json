@@ -2,24 +2,14 @@
   "name": "com.pixshop.app",
   "displayName": "PixShop",
   "version": "1.0.0",
-  "description": "PixShop AI Synthesis Engine",
+  "description": "PixShop App",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "ecosystem:cordova"
-  ],
-  "author": "Noh",
-  "license": "Apache-2.0",
   "devDependencies": {
     "cordova-android": "^12.0.1",
     "cordova-plugin-inappbrowser": "^6.0.0"
   },
   "cordova": {
-    "platforms": [
-      "android"
-    ],
+    "platforms": ["android"],
     "plugins": {
       "cordova-plugin-inappbrowser": {},
       "cordova-plugin-androidx-adapter": {},
