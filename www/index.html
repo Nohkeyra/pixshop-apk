@@ -7,7 +7,14 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
 </head>
-<body style="margin:0; padding:0; background-color: #ffffff; overflow: hidden;">
-    <iframe src="https://pixshop-core-396810488001.us-west1.run.app" style="border:none; width:100vw; height:100vh; position:fixed; top:0; left:0;"></iframe>
+<body style="margin:0; padding:0; background-color: #ffffff;">
+    <script>
+        document.addEventListener('deviceready', () => {
+            // Wait 500ms for the system to stabilize, then redirect
+            setTimeout(() => {
+                window.location.href = "https://pixshop-core-396810488001.us-west1.run.app";
+            }, 500);
+        }, false);
+    </script>
 </body>
 </html>
