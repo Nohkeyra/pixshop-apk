@@ -2,20 +2,24 @@
 <widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>PixShop</name>
     <description>PixShop AI Synthesis Engine</description>
-    <author email="noh@restoranwawasan.com">Noh</author>
+    <author email="dev@pixshop.local">Noh</author>
+    
     <content src="index.html" />
+    
     <access origin="*" />
     <allow-navigation href="*" />
     <allow-intent href="*" />
 
     <platform name="android">
         <preference name="loadUrlTimeoutValue" value="90000" />
-        <preference name="AndroidXEnabled" value="true" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" />
         </edit-config>
+        <preference name="AndroidXEnabled" value="true" />
+        <preference name="BackgroundColor" value="0xff000000" />
+        <preference name="HardwareAcceleration" value="false" />
     </platform>
 
     <preference name="scheme" value="https" />
-    <preference name="hostname" value="localhost" />
+    <preference name="hostname" value="pixshop-core-989603573976.us-west1.run.app" />
 </widget>
