@@ -1,25 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>PixShop</name>
-    <description>
-        AI-powered image synthesis and editing application.
-    </description>
-    <author email="noh@restoranwawasan.com" href="https://pixshop-core-396810488001.us-west1.run.app">
-        Noh
-    </author>
+    <description>PixShop AI Synthesis Engine</description>
+    <author email="noh@restoranwawasan.com">Noh</author>
     
     <content src="index.html" />
     
     <access origin="*" />
-    <allow-navigation href="*" />
+    <allow-navigation href="https://pixshop-core-396810488001.us-west1.run.app/*" />
+    <allow-navigation href="http://*/*" />
+    <allow-navigation href="https://*/*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
 
     <preference name="scheme" value="https" />
     <preference name="hostname" value="localhost" />
-    
-    <platform name="android">
-        <allow-intent href="market:*" />
-        <preference name="AndroidXEnabled" value="true" />
-    </platform>
 </widget>
