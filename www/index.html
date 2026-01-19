@@ -7,33 +7,11 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #000; }
-        iframe { border: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; visibility: hidden; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #fff; overflow: hidden; }
+        iframe { border: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
     </style>
 </head>
 <body>
-    <iframe id="appFrame" src="https://pixshop-core-396810488001.us-west1.run.app"></iframe>
-
-    <script>
-        const iframe = document.getElementById('appFrame');
-        
-        // Wait for Cordova to be ready
-        document.addEventListener('deviceready', () => {
-            console.log("Cordova Ready - Loading UI");
-            
-            // Check if iframe loads successfully
-            iframe.onload = () => {
-                iframe.style.visibility = 'visible';
-                console.log("UI Loaded Successfully");
-            };
-
-            // Error timeout: If it stays black for 10 seconds, something is blocked
-            setTimeout(() => {
-                if (iframe.style.visibility !== 'visible') {
-                    alert("UI failed to load. Check X-Frame-Options on your server.");
-                }
-            }, 10000);
-        }, false);
-    </script>
+    <iframe src="https://pixshop-core-396810488001.us-west1.run.app"></iframe>
 </body>
 </html>
