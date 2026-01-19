@@ -1,11 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>PixShop</name>
-    <description>PixShop AI Engine</description>
+    <description>PixShop AI Synthesis Engine</description>
     <author email="noh@restoranwawasan.com">Noh</author>
-    
     <content src="index.html" />
-    
     <access origin="*" />
     <allow-navigation href="*" />
     <allow-intent href="*" />
