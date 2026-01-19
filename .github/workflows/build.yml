@@ -46,22 +46,26 @@ jobs:
 
       - name: Prepare Workspace
         run: |
-          # Clean everything to prevent Whitelist class errors
+          # 1. Deep clean to remove the broken Whitelist plugin references
           rm -rf platforms/
           rm -rf plugins/
           rm -rf node_modules/
+          rm -f package-lock.json
           
-          # Install core plugins and platform
+          # 2. Add the platform and ONLY the compatible plugins
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
           cordova plugin add cordova-custom-config
           
-          # DO NOT add cordova-plugin-whitelist here. It is built-in now.
+          # Ensure cordova-plugin-whitelist is NOT in the project
+          cordova plugin remove cordova-plugin-whitelist --force || true
 
       - name: Inject API Key and Patch URLs
         run: |
-          # Inject Gemini Key
+          # Inject Gemini Key into .env.local
           sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
+          
+          # Patch JS files for the API key
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
           
           # Redirect local server calls to your live Cloud Run site
