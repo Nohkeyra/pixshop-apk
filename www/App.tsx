@@ -1,5 +1,3 @@
-
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -10,7 +8,7 @@ import { clearState, nukeDatabase, dataUrlToBlob } from './services/persistence'
 import { AppContext } from './context/AppContext';
 import { Spinner } from './components/Spinner';
 import { FilterPanel } from './components/FilterPanel';
-import { LightPanel } from './components/LightPanel'; // Changed import
+import { LightPanel } from './components/LightPanel'; 
 import { TypographicPanel } from './components/TypographicPanel';
 import { VectorArtPanel } from './components/VectorArtPanel';
 import { FluxPanel } from './components/FluxPanel';
@@ -30,7 +28,7 @@ import { CameraCaptureModal } from './components/CameraCaptureModal';
 import { LightningManager } from './components/LightningManager';
 import { audioService } from './services/audioService';
 
-export type ActiveTab = 'flux' | 'style_extractor' | 'filters' | 'light' | 'typography' | 'vector'; // Changed 'adjust' to 'light'
+export type ActiveTab = 'flux' | 'style_extractor' | 'filters' | 'light' | 'typography' | 'vector';
 
 export interface HistoryItem {
     content: File | string;
@@ -56,11 +54,10 @@ export type GenerationRequest = {
 };
 
 export const App: React.FC = () => {
-    // Removed `imageModel` and `isFastAiEnabled` from context destructuring as model selection is fixed
     const { isLoading, setIsLoading, density, hasPaidApiKey } = useContext(AppContext);
     const [appStarted, setAppStarted] = useState(false);
     const [history, setHistory] = useState<HistoryItem[]>([]); 
-    const [historyIndex, setHistoryIndex] = useState(-1); 
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<ActiveTab | null>('flux');
     const [isComparing, setIsComparing] = useState(false);
@@ -69,27 +66,20 @@ export const App: React.FC = () => {
     const [showDebugger, setShowDebugger] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
     
-    // Masking State - REMOVED
-    
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
-    const [fluxPrompt, setFluxPrompt] = useState('');
 
     useEffect(() => {
         debugService.init();
     }, []);
 
-    // Audio Effects for Loading State
     useEffect(() => {
         if (isLoading) {
             audioService.startDrone();
         } else {
             audioService.stopDrone();
-            if (viewerInstruction === "DNA_SAVED" || viewerInstruction === null && !error) {
-                // Play success if we just finished loading without error
-            }
         }
-    }, [isLoading, error, viewerInstruction]);
+    }, [isLoading]);
 
     const currentItem = useMemo(() => history[historyIndex], [history, historyIndex]);
     const [currentMediaUrl, setCurrentMediaUrl] = useState<string | null>(null);
@@ -161,11 +151,8 @@ export const App: React.FC = () => {
     }, []);
 
     const handleRouteStyle = useCallback((style: RoutedStyle) => {
-        const panelMapping: Record<string, ActiveTab> = {
-            'filter_panel': 'filters', 'vector_art_panel': 'vector', 'typographic_panel': 'typography', 'light_panel': 'light' // Updated mapping
-        };
-        setPendingPrompt(style.preset_data.prompt);
-        setActiveTab(panelMapping[style.target_panel_id] || 'filters');
+        setActiveTab(style.targetTab);
+        setPendingPrompt(style.prompt);
     }, []);
 
     const handleGenerationRequest = useCallback(async (req: GenerationRequest) => {
@@ -178,8 +165,8 @@ export const App: React.FC = () => {
             let result = '';
             let groundingData: { uri: string; title?: string }[] | undefined;
             
-            if (!hasPaidApiKey && (req.type === 'flux' || req.type === 'filters' || req.type === 'light' || req.type === 'typography' || req.type === 'vector')) {
-                 throw new Error("NEURAL_LINK_NULL: API access requires a Neural Link. Select a paid Google Cloud Project via the System Config widget.");
+            if (!hasPaidApiKey) {
+                 throw new Error("NEURAL_LINK_NULL: API access requires a Neural Link.");
             }
             
             const commonConfig = { ...req, setViewerInstruction };
@@ -194,22 +181,27 @@ export const App: React.FC = () => {
                     groundingData = fluxResponse.groundingUrls;
                     break;
                 case 'filters':
-                case 'light': // Changed 'adjust' to 'light'
-                    if (source) {
-                        setViewerInstruction("APPLYING_FILTER_PROTOCOL...");
-                        const filterResponse = await geminiService.generateFilteredImage(source, req.prompt!, commonConfig);
-                        result = filterResponse.imageUrl;
-                        groundingData = filterResponse.groundingUrls;
+                case 'light':
+                    if (!source) {
+                        throw new Error("Missing_Source_Visual: Requires an image to apply filters.");
                     }
+                    setViewerInstruction("APPLYING_FILTER_PROTOCOL...");
+                    const filterResponse = await geminiService.generateFilteredImage(source, req.prompt!, commonConfig);
+                    result = filterResponse.imageUrl;
+                    groundingData = filterResponse.groundingUrls;
                     break;
                 case 'typography':
                 case 'vector':
                     setViewerInstruction("RASTERIZING_PATHS...");
-                    const graphicResponse = (req.forceNew || !source) 
+                    // FIX: Falls back to TextToImage if no source image is uploaded
+                    const graphicResponse = (!source) 
                         ? await geminiService.generateFluxTextToImage(req.prompt!, commonConfig)
                         : await geminiService.generateFluxImage(source, req.prompt!, commonConfig);
                     result = graphicResponse.imageUrl;
                     groundingData = graphicResponse.groundingUrls;
+                    break;
+                case 'style_extractor':
+                    // Handled by handleRouteStyle
                     break;
             }
             if (result) {
@@ -217,26 +209,21 @@ export const App: React.FC = () => {
                  const file = new File([blob], `pix_${Date.now()}.png`, { type: 'image/png' });
                  setHistory(prev => [...prev.slice(0, historyIndex + 1), { content: file, type: 'generation', timestamp: Date.now(), prompt: req.prompt, groundingUrls: groundingData }]);
                  setHistoryIndex(prev => prev + 1);
-                 
                  audioService.playSuccess();
             }
         } catch (e: any) { 
-            let errorMsg = e.message || "SYNTHESIS_FAULT";
-            if (errorMsg.includes("AUTH_DENIED") || errorMsg.includes("NEURAL_LINK_NULL")) {
-                errorMsg = "AUTH_FAIL: API access requires a Neural Link. Select a paid Google Cloud Project via the System Config widget.";
-            }
-            setError(errorMsg);
+            setError(e.message || "SYNTHESIS_FAULT");
         } finally { 
             setIsLoading(false);
             setViewerInstruction(null);
         }
-    }, [history, historyIndex, currentItem, setIsLoading, setViewerInstruction, hasPaidApiKey]); 
+    }, [history, historyIndex, currentItem, setIsLoading, setViewerInstruction, hasPaidApiKey]);
 
     const sidebarTabs = [
         { id: 'flux', icon: BoltIcon, label: 'FLUX', color: 'text-flux' },
         { id: 'style_extractor', icon: StyleExtractorIcon, label: 'DNA', color: 'text-dna' },
         { id: 'filters', icon: PaletteIcon, label: 'FX', color: 'text-filter' },
-        { id: 'light', icon: SunIcon, label: 'LIGHT', color: 'text-highlight' }, // Changed 'adjust' to 'light', color to highlight
+        { id: 'light', icon: SunIcon, label: 'LIGHT', color: 'text-highlight' },
         { id: 'vector', icon: VectorIcon, label: 'SVG', color: 'text-vector' },
         { id: 'typography', icon: TypeIcon, label: 'TYPE', color: 'text-type' },
     ];
@@ -267,25 +254,17 @@ export const App: React.FC = () => {
                                         <BoltIcon className={`w-3.5 h-3.5 skew-x-[12deg] group-hover:skew-x-0 transition-all ${isLoading ? 'text-matrix animate-pulse' : 'text-matrix'}`} />
                                     </div>
                                     <div className="flex flex-col">
-                                        <h1 className="text-base pixshop-wordmark font-display tracking-tighter">
-                                            PIXSH<span className="text-matrix">O</span>P
-                                        </h1>
+                                        <h1 className="text-base pixshop-wordmark font-display tracking-tighter">PIXSH<span className="text-matrix">O</span>P</h1>
                                         <span className="text-[6px] font-mono text-zinc-500 uppercase tracking-[0.4em] font-black leading-none opacity-40">Neuro_Link.v9</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-1">
-                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none" title="Camera">
-                                    <CameraIcon className="w-3.5 h-3.5" />
-                                </button>
-                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none" title="History">
-                                    <HistoryIcon className="w-3.5 h-3.5" />
-                                </button>
+                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none"><CameraIcon className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none"><HistoryIcon className="w-3.5 h-3.5" /></button>
                                 <div className="w-px h-4 bg-white/10 mx-2 opacity-30" />
-                                <button onClick={handleDownload} disabled={!currentMediaUrl} className="cyber-button px-3 py-1.5 !text-[8px]">
-                                    SAVE_DNA
-                                </button>
+                                <button onClick={handleDownload} disabled={!currentMediaUrl} className="cyber-button px-3 py-1.5 !text-[8px]">SAVE_DNA</button>
                             </div>
                         </header>
 
@@ -308,47 +287,20 @@ export const App: React.FC = () => {
                                         <p className="text-[9px] font-black tracking-widest uppercase opacity-50 mb-0.5 font-mono">System_Fault</p>
                                         <p className="text-[10px] font-bold tracking-tight uppercase leading-tight truncate">{error}</p>
                                     </div>
-                                    <button 
-                                        onClick={() => setError(null)} 
-                                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/40 text-red-500 text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all skew-x-[-12deg]"
-                                    >
+                                    <button onClick={() => setError(null)} className="px-3 py-1.5 bg-red-500/10 border border-red-500/40 text-red-500 text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all skew-x-[-12deg]">
                                         <span className="skew-x-[12deg] block">CLEAR</span>
                                     </button>
                                 </div>
                             )}
                             
                             <div className="w-full aspect-[4/5] relative group shadow-2xl">
-                                {/* Minimalist HUD Elements */}
-                                <div className="absolute top-2 left-2 w-3 h-3 border-t border-l border-white/20 z-20 pointer-events-none" />
-                                <div className="absolute top-2 right-2 w-3 h-3 border-t border-r border-white/20 z-20 pointer-events-none" />
-
                                 <div className="w-full h-full bg-zinc-900/20 backdrop-blur-md overflow-hidden relative flex items-center justify-center shadow-inner">
                                     {currentMediaUrl ? (
                                         <div className="w-full h-full overflow-hidden relative group">
                                             {isComparing && originalImageUrl ? (
                                                 <CompareSlider originalImage={originalImageUrl} modifiedImage={currentMediaUrl} />
                                             ) : (
-                                                <ZoomPanViewer 
-                                                    src={currentMediaUrl}
-                                                />
-                                            )}
-                                            {currentItem?.groundingUrls && currentItem.groundingUrls.length > 0 && (
-                                                <div className="absolute bottom-16 left-0 right-0 z-20 p-4 pt-0 pointer-events-none">
-                                                    <div className="bg-black/70 backdrop-blur-sm border border-white/5 p-3 flex flex-wrap gap-2 pointer-events-auto max-w-[90%] mx-auto shadow-lg">
-                                                        <span className="text-[7px] font-mono text-matrix uppercase tracking-[0.2em] font-bold mr-2 flex-shrink-0">Source_Data:</span>
-                                                        {currentItem.groundingUrls.map((link, idx) => (
-                                                            <a 
-                                                                key={idx} 
-                                                                href={link.uri} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer" 
-                                                                className="text-[7px] font-mono text-blue-400 hover:text-blue-200 underline truncate max-w-[150px]"
-                                                            >
-                                                                {link.title || link.uri}
-                                                            </a>
-                                                        ))}
-                                                    </div>
-                                                </div>
+                                                <ZoomPanViewer src={currentMediaUrl} />
                                             )}
                                         </div>
                                     ) : (
@@ -356,20 +308,24 @@ export const App: React.FC = () => {
                                     )}
                                 </div>
 
-                                {/* CANVAS BOTTOM ACTION DECK */}
                                 <div className="absolute bottom-0 left-0 w-full z-30 pointer-events-none p-4">
                                     <div className="bg-black/40 backdrop-blur-xl border border-white/5 flex justify-between items-center p-2 pointer-events-auto shadow-2xl">
                                         <div className="flex items-center gap-1">
-                                            <button onClick={() => { if(window.confirm("WIPE_BUFFER?")) handleClearSession(); }} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-red-500 transition-all bg-white/5 border border-white/5" title="Wipe History">
-                                                <TrashIcon className="w-4 h-4" />
-                                            </button>
-                                            <button onClick={handleCloseMedia} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white transition-all bg-white/5 border border-white/5" title="Clear View">
-                                                <XIcon className="w-4 h-4" />
-                                            </button>
+                                            <button onClick={handleCloseMedia} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white transition-all bg-white/5 border border-white/5"><XIcon className="w-4 h-4" /></button>
                                             <div className="w-px h-6 bg-white/5 mx-2" />
-                                            <button onClick={() => setHistoryIndex(Math.max(0, historyIndex - 1))} disabled={historyIndex <= 0} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix disabled:opacity-5 transition-all bg-white/5 border border-white/5"><UndoIcon className="w-4 h-4" /></button>
-                                            <button onClick={() => setHistoryIndex(Math.min(history.length - 1, historyIndex + 1))} disabled={historyIndex >= history.length - 1} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix disabled:opacity-5 transition-all bg-white/5 border border-white/5"><RedoIcon className="w-4 h-4" /></button>
+                                            <button onClick={() => setHistoryIndex(Math.max(0, historyIndex - 1))} disabled={historyIndex <= 0} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix transition-all bg-white/5 border border-white/5"><UndoIcon className="w-4 h-4" /></button>
+                                            <button onClick={() => setHistoryIndex(Math.min(history.length - 1, historyIndex + 1))} disabled={historyIndex >= history.length - 1} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix transition-all bg-white/5 border border-white/5"><RedoIcon className="w-4 h-4" /></button>
                                         </div>
-
                                         <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 transition-all group">
                                             <PlusIcon className="w-4 h-4 group-hover:rotate-90 transition-transform text-matrix" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/70">UPLOAD_SRC</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </main>
+
+                        <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50 shrink-0 pb-safe-bottom">
+                            <div className="flex items-center gap-2 w-full max-w-md overflow-x-auto no-scrollbar py-2">
+                                {sidebarTabs.map(tab => (
+                                    <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-ce
