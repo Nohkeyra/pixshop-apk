@@ -20,7 +20,6 @@ import { SystemConfigWidget } from './components/SystemConfigWidget';
 import { ImageUploadPlaceholder } from './components/ImageUploadPlaceholder';
 import { StartScreen } from './components/StartScreen';
 import * as geminiService from './services/geminiService';
-import { RoutedStyle } from './services/geminiService';
 import { HistoryGrid } from './components/HistoryGrid';
 import { debugService } from './services/debugService';
 import { DebugConsole } from './components/DebugConsole';
@@ -54,7 +53,7 @@ export type GenerationRequest = {
 };
 
 export const App: React.FC = () => {
-    const { isLoading, setIsLoading, density, hasPaidApiKey } = useContext(AppContext);
+    const { isLoading, setIsLoading, hasPaidApiKey } = useContext(AppContext);
     const [appStarted, setAppStarted] = useState(false);
     const [history, setHistory] = useState<HistoryItem[]>([]); 
     const [historyIndex, setHistoryIndex] = useState(-1);
@@ -69,14 +68,12 @@ export const App: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
-    // NEW: DISPLAY DENSITY AUTO-DETECTION
+    // DISPLAY DENSITY AUTO-DETECTION FOR PIXEL 7
     useEffect(() => {
         const updateDisplayMetrics = () => {
             const dpi = window.devicePixelRatio;
-            const width = window.innerWidth;
-            const height = window.innerHeight;
             document.documentElement.style.setProperty('--system-dpi', dpi.toString());
-            console.log(`STABLE_VIEW_SYNC: ${width}x${height} @ ${dpi}x`);
+            console.log(`DISPLAY_SYNC: DPI @ ${dpi}x`);
         };
         updateDisplayMetrics();
         window.addEventListener('resize', updateDisplayMetrics);
@@ -102,7 +99,7 @@ export const App: React.FC = () => {
         if (currentItem) {
             const url = typeof currentItem.content === 'string' 
                 ? currentItem.content 
-                : URL.createObjectURL(currentItem.content);
+                : URL.createObjectURL(currentItem.content as Blob);
             setCurrentMediaUrl(url);
             return () => { if (url && url.startsWith('blob:')) URL.revokeObjectURL(url); };
         } else {
@@ -113,7 +110,7 @@ export const App: React.FC = () => {
     const originalImageUrl = useMemo(() => {
         const item = history.find(h => h.type === 'upload');
         if (!item) return null;
-        return typeof item.content === 'string' ? item.content : URL.createObjectURL(item.content);
+        return typeof item.content === 'string' ? item.content : URL.createObjectURL(item.content as Blob);
     }, [history]);
 
     const handleImageUpload = useCallback(async (file: File) => {
@@ -128,22 +125,35 @@ export const App: React.FC = () => {
         setIsLoading(false);
     }, [setIsLoading, historyIndex]);
 
+    // ENHANCED DOWNLOAD LOGIC
     const handleDownload = useCallback(async () => {
         audioService.playClick();
-        if (!currentMediaUrl) return;
+        if (!currentMediaUrl) {
+            setError("NO_PIXELS_IN_BUFFER");
+            return;
+        }
         setIsLoading(true);
-        setViewerInstruction("COLLECTING_PIXELS...");
+        setViewerInstruction("EXTRACTING_VISUAL_DATA...");
         try {
-            const blob = currentMediaUrl.startsWith('data:') ? dataUrlToBlob(currentMediaUrl) : await (await fetch(currentMediaUrl)).blob();
-            const url = URL.createObjectURL(blob);
+            const response = await fetch(currentMediaUrl);
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
             link.download = `pixshop_${Date.now()}.png`;
+            document.body.appendChild(link);
             link.click();
-            setViewerInstruction("DNA_SAVED");
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            setViewerInstruction("DOWNLOAD_COMPLETE");
             audioService.playSuccess();
             setTimeout(() => setViewerInstruction(null), 2000);
-        } catch (e: any) { setError(`FAULT: ${e.message}`); } finally { setIsLoading(false); }
+        } catch (e: any) { 
+            setError(`SAVE_FAULT: ${e.message}`); 
+        } finally { 
+            setIsLoading(false); 
+        }
     }, [currentMediaUrl, setIsLoading]);
 
     const handleClearSession = useCallback(async () => { 
@@ -180,14 +190,13 @@ export const App: React.FC = () => {
             let groundingData: { uri: string; title?: string }[] | undefined;
             
             if (!hasPaidApiKey) {
-                 throw new Error("NEURAL_LINK_NULL: API access requires a Neural Link.");
+                 throw new Error("NEURAL_LINK_NULL: API access required.");
             }
             
             const commonConfig = { ...req, setViewerInstruction };
 
             switch(req.type) {
                 case 'flux':
-                    setViewerInstruction("SYNTHESIZING_LATENT_VECTORS...");
                     const fluxResponse = (req.forceNew || !source)
                         ? await geminiService.generateFluxTextToImage(req.prompt!, commonConfig)
                         : await geminiService.generateFluxImage(source, req.prompt!, commonConfig);
@@ -196,25 +205,19 @@ export const App: React.FC = () => {
                     break;
                 case 'filters':
                 case 'light':
-                    if (!source) {
-                        throw new Error("Missing_Source_Visual: Requires an image to apply filters.");
-                    }
-                    setViewerInstruction("APPLYING_FILTER_PROTOCOL...");
+                    if (!source) throw new Error("SOURCE_REQUIRED: Please upload an image first.");
                     const filterResponse = await geminiService.generateFilteredImage(source, req.prompt!, commonConfig);
                     result = filterResponse.imageUrl;
                     groundingData = filterResponse.groundingUrls;
                     break;
                 case 'typography':
                 case 'vector':
-                    setViewerInstruction("RASTERIZING_PATHS...");
-                    // THE FIX: Enables image-free generation
+                    // HYBRID LOGIC: Generates text art even without an image
                     const graphicResponse = (!source) 
                         ? await geminiService.generateFluxTextToImage(req.prompt!, commonConfig)
                         : await geminiService.generateFluxImage(source, req.prompt!, commonConfig);
                     result = graphicResponse.imageUrl;
                     groundingData = graphicResponse.groundingUrls;
-                    break;
-                case 'style_extractor':
                     break;
             }
             if (result) {
@@ -262,54 +265,40 @@ export const App: React.FC = () => {
 
                         <header className="h-14 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 pt-safe-top">
                             <div className="flex items-center gap-4">
-                                <div onClick={handleClearSession} className="cursor-pointer group flex items-center gap-3 active:scale-95 transition-transform">
-                                    <div className="w-7 h-7 border border-matrix/30 flex items-center justify-center shadow-neon-matrix transform skew-x-[-12deg] group-hover:skew-x-0 transition-all duration-300 bg-matrix/5">
-                                        <BoltIcon className={`w-3.5 h-3.5 skew-x-[12deg] group-hover:skew-x-0 transition-all ${isLoading ? 'text-matrix animate-pulse' : 'text-matrix'}`} />
+                                <div onClick={handleClearSession} className="cursor-pointer group flex items-center gap-3">
+                                    <div className="w-7 h-7 border border-matrix/30 flex items-center justify-center bg-matrix/5">
+                                        <BoltIcon className={`w-3.5 h-3.5 ${isLoading ? 'text-matrix animate-pulse' : 'text-matrix'}`} />
                                     </div>
-                                    <div className="flex flex-col">
-                                        <h1 className="text-base pixshop-wordmark font-display tracking-tighter">PIXSH<span className="text-matrix">O</span>P</h1>
-                                        <span className="text-[6px] font-mono text-zinc-500 uppercase tracking-[0.4em] font-black leading-none opacity-40">Neuro_Link.v9</span>
-                                    </div>
+                                    <h1 className="text-base pixshop-wordmark font-display tracking-tighter uppercase italic">PIXSH<span className="text-matrix">O</span>P</h1>
                                 </div>
                             </div>
 
                             <div className="flex items-center gap-1">
-                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none"><CameraIcon className="w-3.5 h-3.5" /></button>
-                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white transition-all hover:bg-white/5 rounded-none"><HistoryIcon className="w-3.5 h-3.5" /></button>
-                                <div className="w-px h-4 bg-white/10 mx-2 opacity-30" />
+                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white"><CameraIcon className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white"><HistoryIcon className="w-3.5 h-3.5" /></button>
+                                <div className="w-px h-4 bg-white/10 mx-2" />
                                 <button onClick={handleDownload} disabled={!currentMediaUrl} className="cyber-button px-3 py-1.5 !text-[8px]">SAVE_DNA</button>
                             </div>
                         </header>
 
                         <main className="flex-1 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-4 relative gpu-accelerate overflow-hidden">
                             {isLoading && (
-                                <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm p-8 animate-fade-in">
+                                <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
                                     <Spinner instruction={viewerInstruction} />
-                                    {viewerInstruction && (
-                                        <div className="mt-12 text-matrix font-display text-2xl animate-pulse tracking-[0.4em] uppercase px-10 py-4 border-2 border-matrix/30 bg-black shadow-neon-matrix text-center max-w-sm skew-x-[-12deg]">
-                                            <span className="skew-x-[12deg] block">{viewerInstruction}</span>
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
                             {error && (
-                                <div className="absolute top-4 z-[70] glass-panel border-red-500/50 bg-red-950/95 text-white p-4 flex gap-4 items-center animate-fade-in max-w-[90vw] shadow-[0_0_60px_rgba(239,68,68,0.3)] rounded-none">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_15px_#ef4444]" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[9px] font-black tracking-widest uppercase opacity-50 mb-0.5 font-mono">System_Fault</p>
-                                        <p className="text-[10px] font-bold tracking-tight uppercase leading-tight truncate">{error}</p>
-                                    </div>
-                                    <button onClick={() => setError(null)} className="px-3 py-1.5 bg-red-500/10 border border-red-500/40 text-red-500 text-[8px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all skew-x-[-12deg]">
-                                        <span className="skew-x-[12deg] block">CLEAR</span>
-                                    </button>
+                                <div className="absolute top-4 z-[70] glass-panel border-red-500/50 bg-red-950 p-4 flex gap-4 items-center animate-fade-in">
+                                    <p className="text-[10px] font-bold text-red-500 uppercase">{error}</p>
+                                    <button onClick={() => setError(null)} className="text-[8px] border border-red-500/50 px-2 py-1">CLEAR</button>
                                 </div>
                             )}
                             
                             <div className="w-full aspect-[4/5] relative group shadow-2xl">
-                                <div className="w-full h-full bg-zinc-900/20 backdrop-blur-md overflow-hidden relative flex items-center justify-center shadow-inner">
+                                <div className="w-full h-full bg-zinc-900/20 backdrop-blur-md overflow-hidden relative flex items-center justify-center">
                                     {currentMediaUrl ? (
-                                        <div className="w-full h-full overflow-hidden relative group">
+                                        <div className="w-full h-full overflow-hidden relative">
                                             {isComparing && originalImageUrl ? (
                                                 <CompareSlider originalImage={originalImageUrl} modifiedImage={currentMediaUrl} />
                                             ) : (
@@ -322,35 +311,34 @@ export const App: React.FC = () => {
                                 </div>
 
                                 <div className="absolute bottom-0 left-0 w-full z-30 pointer-events-none p-4">
-                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 flex justify-between items-center p-2 pointer-events-auto shadow-2xl">
+                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 flex justify-between items-center p-2 pointer-events-auto">
                                         <div className="flex items-center gap-1">
-                                            <button onClick={handleCloseMedia} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white transition-all bg-white/5 border border-white/5"><XIcon className="w-4 h-4" /></button>
+                                            <button onClick={handleCloseMedia} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white bg-white/5"><XIcon className="w-4 h-4" /></button>
                                             <div className="w-px h-6 bg-white/5 mx-2" />
-                                            <button onClick={() => setHistoryIndex(Math.max(0, historyIndex - 1))} disabled={historyIndex <= 0} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix transition-all bg-white/5 border border-white/5"><UndoIcon className="w-4 h-4" /></button>
-                                            <button onClick={() => setHistoryIndex(Math.min(history.length - 1, historyIndex + 1))} disabled={historyIndex >= history.length - 1} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-matrix transition-all bg-white/5 border border-white/5"><RedoIcon className="w-4 h-4" /></button>
+                                            <button onClick={() => setHistoryIndex(Math.max(0, historyIndex - 1))} disabled={historyIndex <= 0} className="w-9 h-9 flex items-center justify-center text-zinc-500"><UndoIcon className="w-4 h-4" /></button>
+                                            <button onClick={() => setHistoryIndex(Math.min(history.length - 1, historyIndex + 1))} disabled={historyIndex >= history.length - 1} className="w-9 h-9 flex items-center justify-center text-zinc-500"><RedoIcon className="w-4 h-4" /></button>
                                         </div>
-                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 transition-all group">
-                                            <PlusIcon className="w-4 h-4 group-hover:rotate-90 transition-transform text-matrix" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white/70">UPLOAD_SRC</span>
+                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 transition-all">
+                                            <PlusIcon className="w-4 h-4 text-matrix" />
+                                            <span className="text-[10px] font-black uppercase text-white/70">UPLOAD_SRC</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
                         </main>
 
-                        <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50 shrink-0 pb-safe-bottom">
-                            <div className="flex items-center gap-2 w-full max-w-md overflow-x-auto no-scrollbar py-2">
+                        <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50 pb-safe-bottom">
+                            <div className="flex items-center gap-2 w-full max-w-md overflow-x-auto no-scrollbar">
                                 {sidebarTabs.map(tab => (
-                                    <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-center justify-center min-w-[64px] h-14 transition-all duration-300 relative group ${activeTab === tab.id ? 'opacity-100 scale-110' : 'opacity-30 grayscale'}`}>
+                                    <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-center justify-center min-w-[64px] h-14 transition-all ${activeTab === tab.id ? 'opacity-100 scale-110' : 'opacity-30 grayscale'}`}>
                                         <tab.icon className={`w-5 h-5 mb-1 ${tab.color}`} />
                                         <span className={`text-[8px] font-bold tracking-widest ${tab.color}`}>{tab.label}</span>
-                                        {activeTab === tab.id && <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-matrix shadow-neon-matrix`} />}
                                     </button>
                                 ))}
                             </div>
                         </aside>
 
-                        <div className="w-full max-w-2xl mx-auto px-4 pb-8 z-40 bg-black/50 backdrop-blur-md border-t border-white/5">
+                        <div className="w-full max-w-2xl mx-auto px-4 pb-8 z-40 bg-black/50 backdrop-blur-md">
                             {activeTab === 'flux' && <FluxPanel onGenerate={(req) => handleGenerationRequest({ ...req, type: 'flux' })} />}
                             {activeTab === 'filters' && <FilterPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'filters', prompt })} />}
                             {activeTab === 'light' && <LightPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'light', prompt })} />}
@@ -362,7 +350,7 @@ export const App: React.FC = () => {
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(file); }} />
                         <SystemConfigWidget />
                         <div className="fixed bottom-4 right-4 z-[100]">
-                             <button onClick={() => setShowDebugger(!showDebugger)} className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity">
+                             <button onClick={() => setShowDebugger(!showDebugger)} className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center opacity-20 hover:opacity-100">
                                  <WandIcon className="w-3.5 h-3.5 text-white" />
                              </button>
                         </div>

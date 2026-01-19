@@ -1,35 +1,45 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
+<widget id="com.noh.pixshop" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>PixShop</name>
-    <description>PixShop AI Synthesis Engine</description>
-    <author email="dev@pixshop.local">Noh</author>
+    <description>Neuro-Link Visual DNA Processor</description>
+    <author email="dev@nohkeyra.com" href="https://github.com/Nohkeyra">Noh</author>
     
     <content src="index.html" />
     
     <access origin="*" />
-    <allow-navigation href="*" />
-    <allow-intent href="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+    <allow-intent href="geo:*" />
 
-        <platform name="android">
-    <icon src="resources/icon.png" />
-    <config-file parent="/*" target="AndroidManifest.xml">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-        </config-file>
+    <preference name="ScrollEnabled" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
+    <preference name="HideKeyboardFormAccessoryBar" value="true" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="PullToRefresh" value="true" />
+    <preference name="Fullscreen" value="false" />
+    <preference name="BackgroundColor" value="0xff000000" />
 
-        <preference name="loadUrlTimeoutValue" value="90000" />
+    <platform name="android">
+        <icon src="resources/icon.png" />
         
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true" />
-        </edit-config>
-
-        <preference name="AndroidXEnabled" value="true" />
-        <preference name="BackgroundColor" value="0xff000000" />
-        <preference name="HardwareAcceleration" value="true" />
+        <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
+        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/icon.png" />
+        <preference name="AndroidWindowSplashScreenBackground" value="#000000" />
+        
+        <allow-intent href="market:*" />
+        
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+        </config-file>
     </platform>
 
-    <preference name="scheme" value="https" />
-    <preference name="hostname" value="localhost" />
-    <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
-    <preference name="PullToRefresh" value="true" />
+    <plugin name="cordova-plugin-device" spec="2.0.3" />
+    <plugin name="cordova-plugin-splashscreen" spec="6.0.0" />
+    <plugin name="cordova-plugin-statusbar" spec="3.0.0" />
+    <plugin name="cordova-plugin-file" spec="8.0.0" />
 </widget>
