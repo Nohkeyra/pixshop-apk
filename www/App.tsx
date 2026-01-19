@@ -69,6 +69,20 @@ export const App: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
+    // NEW: DISPLAY DENSITY AUTO-DETECTION
+    useEffect(() => {
+        const updateDisplayMetrics = () => {
+            const dpi = window.devicePixelRatio;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            document.documentElement.style.setProperty('--system-dpi', dpi.toString());
+            console.log(`STABLE_VIEW_SYNC: ${width}x${height} @ ${dpi}x`);
+        };
+        updateDisplayMetrics();
+        window.addEventListener('resize', updateDisplayMetrics);
+        return () => window.removeEventListener('resize', updateDisplayMetrics);
+    }, []);
+
     useEffect(() => {
         debugService.init();
     }, []);
@@ -150,7 +164,7 @@ export const App: React.FC = () => {
         setActiveTab(tab);
     }, []);
 
-    const handleRouteStyle = useCallback((style: RoutedStyle) => {
+    const handleRouteStyle = useCallback((style: any) => {
         setActiveTab(style.targetTab);
         setPendingPrompt(style.prompt);
     }, []);
@@ -193,7 +207,7 @@ export const App: React.FC = () => {
                 case 'typography':
                 case 'vector':
                     setViewerInstruction("RASTERIZING_PATHS...");
-                    // FIX: Falls back to TextToImage if no source image is uploaded
+                    // THE FIX: Enables image-free generation
                     const graphicResponse = (!source) 
                         ? await geminiService.generateFluxTextToImage(req.prompt!, commonConfig)
                         : await geminiService.generateFluxImage(source, req.prompt!, commonConfig);
@@ -201,7 +215,6 @@ export const App: React.FC = () => {
                     groundingData = graphicResponse.groundingUrls;
                     break;
                 case 'style_extractor':
-                    // Handled by handleRouteStyle
                     break;
             }
             if (result) {
@@ -343,7 +356,7 @@ export const App: React.FC = () => {
                             {activeTab === 'light' && <LightPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'light', prompt })} />}
                             {activeTab === 'typography' && <TypographicPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'typography', prompt })} />}
                             {activeTab === 'vector' && <VectorArtPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'vector', prompt })} />}
-                            {activeTab === 'style_extractor' && <StyleExtractorPanel onStyleRoute={handleRouteStyle} />}
+                            {activeTab === 'style_extractor' && <StyleExtractorPanel onRouteStyle={handleRouteStyle} setViewerInstruction={setViewerInstruction} hasImage={!!currentItem} currentImageFile={currentItem?.content instanceof File ? currentItem.content : null} isLoading={isLoading} />}
                         </div>
                         
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(file); }} />

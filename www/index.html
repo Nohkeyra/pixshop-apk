@@ -2,32 +2,63 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
     <style>
-        body { margin: 0; padding: 0; background-color: #000000; color: #00FF00; font-family: monospace; }
-        #loader { display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+        /* Ensures the loading screen matches your app's cyberpunk aesthetic */
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #000000; 
+            color: #00FF9D; /* Matrix Green */
+            font-family: 'Courier New', monospace; 
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+        #loader { 
+            text-align: center; 
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-size: 14px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
     </style>
 </head>
 <body>
     <div id="loader">INITIALIZING_PIXSHOP_OS...</div>
 
     <script>
+        // Auto-detect hardware metrics for internal logging
+        const ratio = window.devicePixelRatio;
+        const width = window.screen.width;
+        const height = window.screen.height;
+        console.log(`OS_SYNC: ${width}x${height} | DPI: ${ratio}`);
+
         document.addEventListener('deviceready', () => {
             const targetUrl = "https://pixshop-core-989603573976.us-west1.run.app".trim();
             const loader = document.getElementById('loader');
 
-            // Catch errors to prevent a permanent black screen
+            // Visual feedback for redirect
             window.onerror = function(msg) {
-                loader.innerHTML = `<span style="color:red;">BOOT_ERROR: ${msg}</span>`;
+                loader.style.color = "#FF2D55"; // Error Red
+                loader.innerHTML = `BOOT_FAULT: ${msg}`;
             };
 
             setTimeout(() => {
-                loader.innerHTML = "CONNECTING_TO_CLOUD_RUN...";
-                // location.href is the most stable way to redirect in Android WebView
-                window.location.href = targetUrl;
-            }, 1000);
+                loader.innerHTML = "ESTABLISHING_NEURAL_LINK...";
+                // location.replace is cleaner for redirects as it doesn't leave the loader in the history
+                window.location.replace(targetUrl);
+            }, 1200);
         }, false);
     </script>
 </body>
