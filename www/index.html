@@ -6,12 +6,16 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
 </head>
-<body style="margin:0; background-color: #ffffff;">
+<body style="margin:0; padding:0; background-color: #ffffff;">
     <script>
         document.addEventListener('deviceready', () => {
-            // Replace the current local view with the live server view
-            // This stops the 'Transition to Front' loop with Chrome
-            window.location.replace("https://pixshop-core-396810488001.us-west1.run.app");
+            // FIX: One solid link, no spaces.
+            const targetUrl = "https://pixshop-core-396810488001.us-west1.run.app/index.html";
+            
+            // Give the Pixel 7 a moment to initialize the network
+            setTimeout(() => {
+                window.location.replace(targetUrl);
+            }, 1000);
         }, false);
     </script>
 </body>
