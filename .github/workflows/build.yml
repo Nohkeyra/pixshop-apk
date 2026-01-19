@@ -29,12 +29,6 @@ jobs:
         with:
           cmdline-tools-version: 12266719
 
-      - name: Install Android Packages
-        run: |
-          mkdir -p $ANDROID_HOME/licenses
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
-          yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
-
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
@@ -43,15 +37,10 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Prepare Workspace
+      - name: Clean and Prepare
         run: |
-          # Remove broken plugin from configuration files
-          sed -i '/cordova-plugin-whitelist/d' package.json || true
-          
-          # Deep clean
           rm -rf platforms/ plugins/ node_modules/ package-lock.json
-          
-          # Install fresh components
+          npm install
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
           cordova plugin add cordova-custom-config
