@@ -7,7 +7,6 @@
     <content src="index.html" />
     
     <access origin="*" />
-    <allow-navigation href="https://pixshop-core-396810488001.us-west1.run.app/*" />
     <allow-navigation href="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
