@@ -31,7 +31,6 @@ jobs:
 
       - name: Install Android Build Tools 33.0.2
         run: |
-          # Force installation of the specific build-tools required by cordova-android 12
           yes | sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools"
 
       - name: Setup Node.js 20
@@ -42,25 +41,14 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Deep Clean and Prepare
+      - name: Clean and Build
         run: |
-          # 1. FIX: Deep clean to remove broken Whitelist and JSON errors
           rm -rf platforms/ plugins/ node_modules/ package-lock.json
-          
-          # 2. FIX: Auto-correct any trailing commas in package.json
-          sed -i 's/,[[:space:]]*}/}/g' package.json || true
-          
-          # 3. Fresh install of dependencies
           npm install
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
           cordova plugin add cordova-custom-config
           cordova plugin add cordova-plugin-inappbrowser
-
-      - name: Inject API Key
-        run: |
-          # Inject Gemini key into JS files
-          find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
