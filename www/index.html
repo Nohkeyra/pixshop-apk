@@ -2,16 +2,17 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap: https://pixshop-core-396810488001.us-west1.run.app; frame-src *;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-inline' 'unsafe-eval'; frame-src *; connect-src *; style-src 'self' 'unsafe-inline'; media-src *; img-src * data:;">
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
 </head>
-<body style="margin:0; padding:0; overflow:hidden; background-color: #000;">
+<body style="margin:0; padding:0; background-color: #000; overflow: hidden;">
     <iframe
+      id="main-frame"
       src="https://pixshop-core-396810488001.us-west1.run.app"
-      style="border:none; width:100vw; height:100vh; position:fixed; top:0; left:0;"
-      allow="camera; microphone; geolocation">
+      style="border:none; width:100vw; height:100vh; position:fixed; top:0; left:0; z-index: 999;"
+      allow="camera; microphone; geolocation;">
     </iframe>
 </body>
 </html>
