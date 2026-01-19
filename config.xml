@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.noh.pixshop" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.noh.pixshop" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>PixShop</name>
     <description>Neuro-Link Visual DNA Processor</description>
     <author email="dev@nohkeyra.com" href="https://github.com/Nohkeyra">Noh</author>
@@ -9,24 +9,16 @@
     <access origin="*" />
     <allow-intent href="http://*/*" />
     <allow-intent href="https://*/*" />
-    <allow-intent href="tel:*" />
-    <allow-intent href="sms:*" />
-    <allow-intent href="mailto:*" />
-    <allow-intent href="geo:*" />
 
-    <preference name="ScrollEnabled" value="false" />
-    <preference name="DisallowOverscroll" value="true" />
     <preference name="Orientation" value="portrait" />
-    <preference name="PullToRefresh" value="true" />
     <preference name="BackgroundColor" value="0xff000000" />
+    <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
 
     <platform name="android">
         <icon src="resources/icon.png" />
-        <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
-        <allow-intent href="market:*" />
     </platform>
 
     <plugin name="cordova-plugin-device" spec="2.0.3" />
-    <plugin name="cordova-plugin-statusbar" spec="3.0.0" />
     <plugin name="cordova-plugin-file" spec="8.0.0" />
 </widget>
+
