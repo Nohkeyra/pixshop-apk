@@ -44,30 +44,33 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Add AndroidX Support
-        run: cordova plugin add cordova-plugin-androidx-adapter
-
-      - name: Add Android Platform
-        run: cordova platform add android@12.0.1
-
-      - name: Remove Incompatible Plugins
+      - name: Prepare Workspace
         run: |
-          cordova plugin remove cordova-plugin-whitelist || true
-          cordova plugin remove cordova-plugin-splashscreen || true
+          # Clean old platform data to ensure fresh UI styles are used
+          rm -rf platforms/
+          rm -rf plugins/
+          
+          # Add the required platform and adapter
+          cordova platform add android@12.0.1
+          cordova plugin add cordova-plugin-androidx-adapter
+          
+          # FIX: This plugin is required to apply the security settings in config.xml
+          cordova plugin add cordova-custom-config
 
-      # This step injects your key and points the app to your live website
-      - name: Inject API Key and Fix URLs
+      - name: Inject API Key and Patch URLs
         run: |
-          # Inject the Gemini Key into .env.local
+          # 1. Inject the Gemini Key into your .env.local file
           sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
           
-          # Replace any "PLACEHOLDER_API_KEY" text found in Javascript files
+          # 2. Inject the Gemini Key into any .js files (backup)
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
           
-          # Replace local dev server (0.0.0.0 or localhost) with your live Cloud Run URL
-          # This helps fix the "Service Unavailable" error
+          # 3. Patch local server URLs to point to your live Cloud Run site
           find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://localhost:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
           find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://0.0.0.0:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
+
+      - name: Finalize Cordova Prepare
+        run: cordova prepare android
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
