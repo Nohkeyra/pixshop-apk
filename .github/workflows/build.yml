@@ -46,34 +46,16 @@ jobs:
 
       - name: Prepare Workspace
         run: |
-          # 1. Deep clean to remove the broken Whitelist plugin references
-          rm -rf platforms/
-          rm -rf plugins/
-          rm -rf node_modules/
-          rm -f package-lock.json
-          
-          # 2. Add the platform and ONLY the compatible plugins
+          rm -rf platforms/ plugins/ node_modules/
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
           cordova plugin add cordova-custom-config
-          
-          # Ensure cordova-plugin-whitelist is NOT in the project
-          cordova plugin remove cordova-plugin-whitelist --force || true
+          # Whitelist is built-in; we don't add the plugin here.
 
-      - name: Inject API Key and Patch URLs
+      - name: Inject API Key
         run: |
-          # Inject Gemini Key into .env.local
           sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
-          
-          # Patch JS files for the API key
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
-          
-          # Redirect local server calls to your live Cloud Run site
-          find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://localhost:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
-          find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://0.0.0.0:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
-
-      - name: Finalize Cordova Prepare
-        run: cordova prepare android
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
