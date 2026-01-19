@@ -1,5 +1,3 @@
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -17,10 +15,10 @@
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
 
-  /* Sakuga Theme Core overrides from public/index.css */
-  --color-primary: #F8130D; /* Red */
-  --color-secondary: #FB4606; /* Orange */
-  --color-highlight: #FCF721; /* Yellow */
+  /* Sakuga Theme Core overrides */
+  --color-primary: #F8130D; 
+  --color-secondary: #FB4606; 
+  --color-highlight: #FCF721; 
   --color-background: #000000;
   --color-surface: #0A0A0A;
   --color-surface-light: #111111;
@@ -45,11 +43,17 @@
     overflow: hidden;
     select: none;
     -webkit-tap-highlight-color: transparent;
-    /* Ensure hardware acceleration for the entire shell */
     transform: translateZ(0);
   }
 
-  /* Base Input/Textarea/Select Styling from public/index.css */
+  /* NEW: Neon Glow and Pulse for AI Images */
+  img {
+    filter: drop-shadow(0 0 15px var(--color-filter));
+    border: 1px solid rgba(0, 240, 255, 0.3);
+    animation: glow-pulse 3s infinite ease-in-out;
+    border-radius: 4px;
+  }
+
   input[type="text"],
   input[type="number"],
   input[type="range"],
@@ -61,7 +65,6 @@
     padding: 0.75rem 1rem;
     transition: all 0.2s ease-in-out;
     font-family: var(--font-mono);
-    /* Force 16px font size on mobile to prevent iOS zoom-on-focus */
     font-size: 16px; 
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
   }
@@ -96,7 +99,6 @@
 
   h1, h2, h3, h4 {
     @apply font-display tracking-tight text-white uppercase italic;
-    /* Frequency adjusted for subtle hardware-style flicker */
     animation: terminal-flicker 6s infinite step-end;
     text-shadow: 0 0 10px rgba(255,255,255,0.3);
   }
@@ -104,6 +106,12 @@
   input, textarea {
     font-size: 16px !important;
   }
+}
+
+/* Animations */
+@keyframes glow-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px var(--color-filter)); opacity: 1; }
+  50% { filter: drop-shadow(0 0 25px var(--color-filter)); opacity: 0.95; }
 }
 
 @keyframes terminal-flicker {
@@ -165,11 +173,11 @@
 
   .execute-btn {
     @apply w-full h-11 relative overflow-hidden bg-black border border-white/20 transition-all active:scale-95 flex items-center justify-center gap-3 group rounded-none;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8); /* Added default shadow for consistency */
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
   }
 
   .preset-grid {
-    @apply grid grid-cols-2 gap-4 w-full items-stretch; /* Increased gap from gap-1 to gap-4 */
+    @apply grid grid-cols-2 gap-4 w-full items-stretch;
   }
 
   .preset-card {
@@ -212,7 +220,6 @@
     animation: scanline-anim 1.5s linear infinite;
   }
 
-  /* Sakuga Utility Classes from public/index.css */
   .cyber-grid {
     background-image:
       linear-gradient(var(--color-primary), 1px, transparent 1px),
@@ -277,4 +284,5 @@
     background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
     background-size: 40px 40px;
   }
-}
+  }
+    
