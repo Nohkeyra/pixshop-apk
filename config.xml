@@ -18,7 +18,8 @@
         </edit-config>
         
         <preference name="AndroidXEnabled" value="true" />
-        <preference name="BackgroundColor" value="0xff000000" />
+        <preference name="BackgroundColor" value="0xffffffff" />
+        <preference name="HardwareAcceleration" value="false" />
     </platform>
 
     <preference name="scheme" value="https" />
