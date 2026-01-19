@@ -328,4 +328,34 @@ export const App: React.FC = () => {
                         <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50 shrink-0 pb-safe-bottom">
                             <div className="flex items-center gap-2 w-full max-w-md overflow-x-auto no-scrollbar py-2">
                                 {sidebarTabs.map(tab => (
-                                    <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-ce
+                                    <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-center justify-center min-w-[64px] h-14 transition-all duration-300 relative group ${activeTab === tab.id ? 'opacity-100 scale-110' : 'opacity-30 grayscale'}`}>
+                                        <tab.icon className={`w-5 h-5 mb-1 ${tab.color}`} />
+                                        <span className={`text-[8px] font-bold tracking-widest ${tab.color}`}>{tab.label}</span>
+                                        {activeTab === tab.id && <div className={`absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-matrix shadow-neon-matrix`} />}
+                                    </button>
+                                ))}
+                            </div>
+                        </aside>
+
+                        <div className="w-full max-w-2xl mx-auto px-4 pb-8 z-40 bg-black/50 backdrop-blur-md border-t border-white/5">
+                            {activeTab === 'flux' && <FluxPanel onGenerate={(req) => handleGenerationRequest({ ...req, type: 'flux' })} />}
+                            {activeTab === 'filters' && <FilterPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'filters', prompt })} />}
+                            {activeTab === 'light' && <LightPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'light', prompt })} />}
+                            {activeTab === 'typography' && <TypographicPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'typography', prompt })} />}
+                            {activeTab === 'vector' && <VectorArtPanel onGenerate={(prompt) => handleGenerationRequest({ type: 'vector', prompt })} />}
+                            {activeTab === 'style_extractor' && <StyleExtractorPanel onStyleRoute={handleRouteStyle} />}
+                        </div>
+                        
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(file); }} />
+                        <SystemConfigWidget />
+                        <div className="fixed bottom-4 right-4 z-[100]">
+                             <button onClick={() => setShowDebugger(!showDebugger)} className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity">
+                                 <WandIcon className="w-3.5 h-3.5 text-white" />
+                             </button>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
+    );
+};
