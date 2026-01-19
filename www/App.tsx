@@ -68,12 +68,10 @@ export const App: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
 
-    // DISPLAY DENSITY AUTO-DETECTION FOR PIXEL 7
     useEffect(() => {
         const updateDisplayMetrics = () => {
             const dpi = window.devicePixelRatio;
             document.documentElement.style.setProperty('--system-dpi', dpi.toString());
-            console.log(`DISPLAY_SYNC: DPI @ ${dpi}x`);
         };
         updateDisplayMetrics();
         window.addEventListener('resize', updateDisplayMetrics);
@@ -116,16 +114,14 @@ export const App: React.FC = () => {
     const handleImageUpload = useCallback(async (file: File) => {
         audioService.playClick();
         setIsLoading(true);
-        setViewerInstruction("INJECTING_SOURCE_DNA...");
         const newItem: HistoryItem = { content: file, type: 'upload', timestamp: Date.now() };
         setHistory(prev => [...prev.slice(0, historyIndex + 1), newItem]);
         setHistoryIndex(prev => prev + 1);
         setAppStarted(true);
-        setViewerInstruction(null);
         setIsLoading(false);
     }, [setIsLoading, historyIndex]);
 
-    // ENHANCED DOWNLOAD LOGIC
+    // SAFE DOWNLOAD LOGIC - AVOIDS BLOB INTENT CRASH
     const handleDownload = useCallback(async () => {
         audioService.playClick();
         if (!currentMediaUrl) {
@@ -137,18 +133,20 @@ export const App: React.FC = () => {
         try {
             const response = await fetch(currentMediaUrl);
             const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `pixshop_${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-            
-            setViewerInstruction("DOWNLOAD_COMPLETE");
-            audioService.playSuccess();
-            setTimeout(() => setViewerInstruction(null), 2000);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64data = reader.result;
+                const link = document.createElement('a');
+                link.href = base64data as string;
+                link.download = `pixshop_${Date.now()}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setViewerInstruction("DOWNLOAD_COMPLETE");
+                audioService.playSuccess();
+                setTimeout(() => setViewerInstruction(null), 2000);
+            };
+            reader.readAsDataURL(blob);
         } catch (e: any) { 
             setError(`SAVE_FAULT: ${e.message}`); 
         } finally { 
@@ -205,14 +203,13 @@ export const App: React.FC = () => {
                     break;
                 case 'filters':
                 case 'light':
-                    if (!source) throw new Error("SOURCE_REQUIRED: Please upload an image first.");
+                    if (!source) throw new Error("SOURCE_REQUIRED");
                     const filterResponse = await geminiService.generateFilteredImage(source, req.prompt!, commonConfig);
                     result = filterResponse.imageUrl;
                     groundingData = filterResponse.groundingUrls;
                     break;
                 case 'typography':
                 case 'vector':
-                    // HYBRID LOGIC: Generates text art even without an image
                     const graphicResponse = (!source) 
                         ? await geminiService.generateFluxTextToImage(req.prompt!, commonConfig)
                         : await geminiService.generateFluxImage(source, req.prompt!, commonConfig);
@@ -248,8 +245,6 @@ export const App: React.FC = () => {
         <div className="min-h-screen w-full flex flex-col items-center bg-black overflow-hidden selection:bg-matrix/30">
             <div className="scanline-overlay" />
             <LightningManager />
-            <div className="absolute inset-0 asphalt-grid opacity-10 pointer-events-none" />
-
             <div className="w-full h-full max-w-[1920px] flex flex-col relative z-10 overflow-hidden">
                 {showDebugger && <DebugConsole onClose={() => setShowDebugger(false)} />}
                 {showHistoryGrid && <HistoryGrid history={history} setHistoryIndex={(i) => { setHistoryIndex(i); setShowHistoryGrid(false); }} onClose={() => setShowHistoryGrid(false)} />}
@@ -259,66 +254,31 @@ export const App: React.FC = () => {
                     <StartScreen onStart={(tab) => { if (tab) setActiveTab(tab); setAppStarted(true); audioService.playSuccess(); }} />
                 ) : (
                     <>
-                        <div className={`absolute top-0 left-0 w-full h-[2px] bg-matrix/20 z-[100] transition-opacity duration-500 overflow-hidden ${isLoading ? 'opacity-100' : 'opacity-0'}`}>
-                            <div className="h-full w-60 bg-matrix shadow-neon-matrix animate-neural-loading" />
-                        </div>
-
-                        <header className="h-14 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 z-50 shrink-0 pt-safe-top">
-                            <div className="flex items-center gap-4">
-                                <div onClick={handleClearSession} className="cursor-pointer group flex items-center gap-3">
-                                    <div className="w-7 h-7 border border-matrix/30 flex items-center justify-center bg-matrix/5">
-                                        <BoltIcon className={`w-3.5 h-3.5 ${isLoading ? 'text-matrix animate-pulse' : 'text-matrix'}`} />
-                                    </div>
-                                    <h1 className="text-base pixshop-wordmark font-display tracking-tighter uppercase italic">PIXSH<span className="text-matrix">O</span>P</h1>
+                        <header className="h-14 flex items-center justify-between px-6 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 z-50 shrink-0">
+                            <div onClick={handleClearSession} className="cursor-pointer group flex items-center gap-3">
+                                <div className="w-7 h-7 border border-matrix/30 flex items-center justify-center bg-matrix/5">
+                                    <BoltIcon className={`w-3.5 h-3.5 ${isLoading ? 'text-matrix animate-pulse' : 'text-matrix'}`} />
                                 </div>
+                                <h1 className="text-base font-display uppercase italic">PIXSH<span className="text-matrix">O</span>P</h1>
                             </div>
 
                             <div className="flex items-center gap-1">
-                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white"><CameraIcon className="w-3.5 h-3.5" /></button>
-                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30 hover:text-white"><HistoryIcon className="w-3.5 h-3.5" /></button>
-                                <div className="w-px h-4 bg-white/10 mx-2" />
+                                <button onClick={() => setShowCamera(true)} className="w-8 h-8 flex items-center justify-center text-white/30"><CameraIcon className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setShowHistoryGrid(true)} className="w-8 h-8 flex items-center justify-center text-white/30"><HistoryIcon className="w-3.5 h-3.5" /></button>
                                 <button onClick={handleDownload} disabled={!currentMediaUrl} className="cyber-button px-3 py-1.5 !text-[8px]">SAVE_DNA</button>
                             </div>
                         </header>
 
-                        <main className="flex-1 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-4 relative gpu-accelerate overflow-hidden">
-                            {isLoading && (
-                                <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
-                                    <Spinner instruction={viewerInstruction} />
-                                </div>
-                            )}
-
-                            {error && (
-                                <div className="absolute top-4 z-[70] glass-panel border-red-500/50 bg-red-950 p-4 flex gap-4 items-center animate-fade-in">
-                                    <p className="text-[10px] font-bold text-red-500 uppercase">{error}</p>
-                                    <button onClick={() => setError(null)} className="text-[8px] border border-red-500/50 px-2 py-1">CLEAR</button>
-                                </div>
-                            )}
-                            
+                        <main className="flex-1 w-full max-w-2xl mx-auto flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                            {isLoading && <div className="absolute inset-0 z-[60] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm"><Spinner instruction={viewerInstruction} /></div>}
                             <div className="w-full aspect-[4/5] relative group shadow-2xl">
                                 <div className="w-full h-full bg-zinc-900/20 backdrop-blur-md overflow-hidden relative flex items-center justify-center">
-                                    {currentMediaUrl ? (
-                                        <div className="w-full h-full overflow-hidden relative">
-                                            {isComparing && originalImageUrl ? (
-                                                <CompareSlider originalImage={originalImageUrl} modifiedImage={currentMediaUrl} />
-                                            ) : (
-                                                <ZoomPanViewer src={currentMediaUrl} />
-                                            )}
-                                        </div>
-                                    ) : (
-                                        <ImageUploadPlaceholder onImageUpload={handleImageUpload} />
-                                    )}
+                                    {currentMediaUrl ? <ZoomPanViewer src={currentMediaUrl} /> : <ImageUploadPlaceholder onImageUpload={handleImageUpload} />}
                                 </div>
-
-                                <div className="absolute bottom-0 left-0 w-full z-30 pointer-events-none p-4">
-                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 flex justify-between items-center p-2 pointer-events-auto">
-                                        <div className="flex items-center gap-1">
-                                            <button onClick={handleCloseMedia} className="w-9 h-9 flex items-center justify-center text-zinc-500 hover:text-white bg-white/5"><XIcon className="w-4 h-4" /></button>
-                                            <div className="w-px h-6 bg-white/5 mx-2" />
-                                            <button onClick={() => setHistoryIndex(Math.max(0, historyIndex - 1))} disabled={historyIndex <= 0} className="w-9 h-9 flex items-center justify-center text-zinc-500"><UndoIcon className="w-4 h-4" /></button>
-                                            <button onClick={() => setHistoryIndex(Math.min(history.length - 1, historyIndex + 1))} disabled={historyIndex >= history.length - 1} className="w-9 h-9 flex items-center justify-center text-zinc-500"><RedoIcon className="w-4 h-4" /></button>
-                                        </div>
-                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20 transition-all">
+                                <div className="absolute bottom-0 left-0 w-full z-30 p-4">
+                                    <div className="bg-black/40 backdrop-blur-xl border border-white/5 flex justify-between items-center p-2">
+                                        <button onClick={handleCloseMedia} className="w-9 h-9 flex bg-white/5 items-center justify-center text-zinc-500"><XIcon className="w-4 h-4" /></button>
+                                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-6 py-2.5 bg-white/10 hover:bg-white/20">
                                             <PlusIcon className="w-4 h-4 text-matrix" />
                                             <span className="text-[10px] font-black uppercase text-white/70">UPLOAD_SRC</span>
                                         </button>
@@ -327,7 +287,7 @@ export const App: React.FC = () => {
                             </div>
                         </main>
 
-                        <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50 pb-safe-bottom">
+                        <aside className="w-full h-20 bg-zinc-950/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-center px-6 z-50">
                             <div className="flex items-center gap-2 w-full max-w-md overflow-x-auto no-scrollbar">
                                 {sidebarTabs.map(tab => (
                                     <button key={tab.id} onClick={() => handleTabSwitch(tab.id as ActiveTab)} className={`flex flex-col items-center justify-center min-w-[64px] h-14 transition-all ${activeTab === tab.id ? 'opacity-100 scale-110' : 'opacity-30 grayscale'}`}>
@@ -350,9 +310,7 @@ export const App: React.FC = () => {
                         <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(file); }} />
                         <SystemConfigWidget />
                         <div className="fixed bottom-4 right-4 z-[100]">
-                             <button onClick={() => setShowDebugger(!showDebugger)} className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center opacity-20 hover:opacity-100">
-                                 <WandIcon className="w-3.5 h-3.5 text-white" />
-                             </button>
+                             <button onClick={() => setShowDebugger(!showDebugger)} className="w-8 h-8 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center opacity-20 hover:opacity-100"><WandIcon className="w-3.5 h-3.5 text-white" /></button>
                         </div>
                     </>
                 )}

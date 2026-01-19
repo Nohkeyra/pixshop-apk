@@ -4,21 +4,18 @@ import react from '@vitejs/plugin-react'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Sets relative paths for all assets so the APK can find them locally
+  // CRITICAL: Makes all asset paths relative for the Android WebView
   base: './', 
   build: {
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        // Keeps file names simple for the Cordova build process
-        entryFileNames: `assets/[name].js`,
+        // Forces consistent naming so index.html doesn't get a 404 error
+        entryFileNames: `assets/main.js`,
         chunkFileNames: `assets/[name].js`,
         assetFileNames: `assets/[name].[ext]`
       }
     }
-  },
-  server: {
-    port: 3000
   }
 })
