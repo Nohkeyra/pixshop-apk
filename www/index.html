@@ -2,16 +2,12 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap: https://ssl.gstatic.com; frame-src *; connect-src *;">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap:; frame-src *; connect-src *;">
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
-    <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background-color: #fff; overflow: hidden; }
-        iframe { border: none; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
-    </style>
 </head>
-<body>
-    <iframe src="https://pixshop-core-396810488001.us-west1.run.app"></iframe>
+<body style="margin:0; padding:0; background-color: #ffffff; overflow: hidden;">
+    <iframe src="https://pixshop-core-396810488001.us-west1.run.app" style="border:none; width:100vw; height:100vh; position:fixed; top:0; left:0;"></iframe>
 </body>
 </html>
