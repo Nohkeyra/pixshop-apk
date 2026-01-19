@@ -6,15 +6,14 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
 </head>
-<body style="margin:0; padding:0; background-color: #ffffff;">
+<body style="margin:0; padding:0; background-color: #000000;">
     <script>
         document.addEventListener('deviceready', () => {
-            // FIX: One continuous link with no spaces to prevent ABORTED error
-            const target = "https://pixshop-core-396810488001.us-west1.run.app/index.html";
+            // New verified URL
+            const targetUrl = "https://pixshop-core-989603573976.us-west1.run.app";
             
-            // Give the system 1 second to stabilize before connecting
             setTimeout(() => {
-                window.location.replace(target);
+                window.location.replace(targetUrl);
             }, 1000);
         }, false);
     </script>
