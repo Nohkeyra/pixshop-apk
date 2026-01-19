@@ -19,6 +19,7 @@
         <preference name="AndroidXEnabled" value="true" />
         <preference name="BackgroundColor" value="0xffffffff" />
         <preference name="HardwareAcceleration" value="false" />
+        <preference name="InAppBrowserStatusBarStyle" value="lightcontent" />
     </platform>
 
     <preference name="scheme" value="https" />
