@@ -1,18 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>PixShop</title>
+    
     <script src="cordova.js"></script>
+    
     <style>
+        /* Matrix-style loading background to prevent white flashes */
         body { 
             margin: 0; 
             padding: 0; 
             background-color: #000000; 
+            color: #00FF9D; 
+            font-family: monospace; 
             overflow: hidden; 
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
         }
-        #root { width: 100vw; height: 100vh; }
+        #root { 
+            width: 100vw; 
+            height: 100vh; 
+        }
     </style>
 </head>
 <body>
@@ -21,8 +31,9 @@
     <script type="module" src="./assets/main.js"></script>
 
     <script>
+        // Verification log for Shizuku/LADB
         document.addEventListener('deviceready', () => {
-            console.log("PIXSHOP_NATIVE_READY");
+            console.log("PIXSHOP_NATIVE_BOOT_COMPLETE");
         }, false);
     </script>
 </body>
