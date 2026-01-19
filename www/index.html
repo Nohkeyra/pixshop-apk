@@ -6,7 +6,6 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
     <style>
-        /* Matrix-style loading background */
         body { 
             margin: 0; 
             padding: 0; 
@@ -21,12 +20,11 @@
 <body>
     <div id="root"></div>
 
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
 
     <script>
-        // Optional: Logs hardware data to your Termux console for debugging
         document.addEventListener('deviceready', () => {
-            console.log("PIXSHOP_OS_INITIALIZED: Native Mode Active.");
+            console.log("PIXSHOP_OS: Native Boot Success.");
         }, false);
     </script>
 </body>
