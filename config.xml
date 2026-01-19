@@ -29,4 +29,6 @@
 
     <preference name="scheme" value="https" />
     <preference name="hostname" value="localhost" />
+    <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
+    <preference name="PullToRefresh" value="true" />
 </widget>
