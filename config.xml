@@ -1,29 +1,23 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:android="http://schemas.android.com/apk/res/android">
     <name>PixShop</name>
-    <description>PixShop AI Synthesis Engine</description>
+    <description>PixShop AI Engine</description>
     <author email="noh@restoranwawasan.com">Noh</author>
     
     <content src="index.html" />
     
     <access origin="*" />
     <allow-navigation href="*" />
-    <allow-intent href="http://*/*" />
-    <allow-intent href="https://*/*" />
+    <allow-intent href="*" />
 
     <platform name="android">
-        <preference name="StayInApp" value="true" />
-        
+        <preference name="loadUrlTimeoutValue" value="90000" />
+        <preference name="AndroidXEnabled" value="true" />
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" />
         </edit-config>
-        
-        <preference name="AndroidXEnabled" value="true" />
-        <preference name="BackgroundColor" value="0xffffffff" />
-        <preference name="HardwareAcceleration" value="false" />
     </platform>
 
     <preference name="scheme" value="https" />
-    <preference name="hostname" value="pixshop-core-396810488001.us-west1.run.app" />
-    <preference name="loadUrlTimeoutValue" value="60000" />
+    <preference name="hostname" value="localhost" />
 </widget>
