@@ -11,15 +11,22 @@
     <allow-intent href="*" />
 
     <platform name="android">
+        <config-file parent="/*" target="AndroidManifest.xml">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+        </config-file>
+
         <preference name="loadUrlTimeoutValue" value="90000" />
+        
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" />
         </edit-config>
+
         <preference name="AndroidXEnabled" value="true" />
         <preference name="BackgroundColor" value="0xff000000" />
-        <preference name="HardwareAcceleration" value="false" />
+        <preference name="HardwareAcceleration" value="true" />
     </platform>
 
     <preference name="scheme" value="https" />
-    <preference name="hostname" value="pixshop-core-989603573976.us-west1.run.app" />
+    <preference name="hostname" value="localhost" />
 </widget>
