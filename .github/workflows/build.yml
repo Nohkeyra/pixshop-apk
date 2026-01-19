@@ -31,7 +31,6 @@ jobs:
 
       - name: Install Android Build Tools 33.0.2
         run: |
-          # Force installation of the specific build-tools version required by cordova-android 12
           yes | sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools"
 
       - name: Setup Node.js 20
@@ -42,12 +41,9 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova@12
 
-      - name: Deep Clean and Prepare
+      - name: Clean and Prepare Project
         run: |
-          # 1. Deep clean to remove broken Whitelist and previous failed configurations
           rm -rf platforms/ plugins/ node_modules/ package-lock.json
-          
-          # 2. Fresh install of dependencies from package.json
           npm install
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
@@ -56,8 +52,8 @@ jobs:
 
       - name: Inject API Key
         run: |
-          # Replace PLACEHOLDER_API_KEY with your new key for the 989603573976 link
-          find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
+          # This command searches .js, .ts, and .tsx files in the www folder
+          find www -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" \) -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
@@ -67,3 +63,4 @@ jobs:
         with:
           name: pixshop-apk
           path: platforms/android/app/build/outputs/apk/debug/app-debug.apk
+          
