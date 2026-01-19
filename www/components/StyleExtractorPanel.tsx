@@ -1,5 +1,3 @@
-
-
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
@@ -14,8 +12,7 @@ interface StyleExtractorPanelProps {
   isLoading: boolean;
   hasImage: boolean;
   currentImageFile: File | null;
-  onRouteStyle: (style: RoutedStyle) => void;
-  // isFastAiEnabled: boolean; // Removed, as model choice is now fixed
+  onRouteStyle: (style: any) => void;
   setViewerInstruction: (text: string | null) => void;
 }
 
@@ -63,7 +60,6 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
         const loaded = await loadUserPresets();
         setSavedPresets(loaded);
     } catch (e) {
-        console.error("Failed to load presets", e);
         setError("Library Fault.");
     } finally {
         setIsLoadingLibrary(false);
@@ -102,7 +98,6 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
       const result = await extractStyleFromImage(currentImageFile, setViewerInstruction);
       setRoutedStyle(result);
     } catch (e: any) {
-      console.error('Extraction failed:', e);
       setError(e.message || "Extraction Fault.");
     } finally {
       setIsExtracting(false);
@@ -146,21 +141,19 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
     } catch (e) {}
   };
 
-  const handleRoute = useCallback((styleToRoute?: RoutedStyle) => {
+  const handleRoute = useCallback((styleToRoute?: any) => {
     const style = styleToRoute || routedStyle;
-    const targetPanel = styleToRoute ? styleToRoute.target_panel_id : selectedPanel;
+    const targetPanel = styleToRoute ? styleToRoute.recommendedPanel : selectedPanel;
+    
     if (style && targetPanel) {
-      onRouteStyle({ ...style, target_panel_id: targetPanel as any });
+      // Map DNA data to the correct tool format
+      onRouteStyle({
+        targetTab: targetPanel.replace('_panel', '').replace('_art', '').replace('graphic', 'typography') as any,
+        prompt: style.preset_data?.prompt || style.applyPrompt,
+        styleName: style.preset_data?.name || style.name
+      });
     }
   }, [routedStyle, onRouteStyle, selectedPanel]);
-
-  const handleExport = () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(savedPresets));
-      const anchor = document.createElement('a');
-      anchor.setAttribute("href", dataStr);
-      anchor.setAttribute("download", `pixshop_dna_${Date.now()}.json`);
-      anchor.click();
-  };
 
   const canExtract = hasImage && currentImageFile && !isLoading && !isExtracting;
 
@@ -180,7 +173,6 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
                  </div>
              </div>
              
-             {/* Relocated Toggle Bar to Top */}
              <div className="flex p-1 bg-black/40 border border-zinc-800 rounded-none overflow-hidden h-9">
                 {['scan', 'library'].map((v) => (
                     <button 
@@ -250,8 +242,8 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
          ) : (
              <div className="space-y-4 animate-fade-in pb-10">
                  <div className="flex gap-2 mb-4">
-                    <button onClick={handleExport} disabled={savedPresets.length === 0} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-dna hover:border-dna/40 transition-all rounded-none">
-                        <DownloadIcon className="w-3.5 h-3.5" /> Export
+                    <button onClick={() => handleRoute()} disabled={!routedStyle && savedPresets.length === 0} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 text-dna hover:bg-dna/10 transition-all rounded-none">
+                        <SparklesIcon className="w-3.5 h-3.5" /> Inject DNA
                     </button>
                     <button onClick={() => fileInputRef.current?.click()} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase tracking-widest bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-dna hover:border-dna/40 transition-all rounded-none">
                         <UploadIcon className="w-3.5 h-3.5" /> Import
@@ -283,7 +275,7 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
                                     <button onClick={() => handleDeletePreset(preset.id)} className="text-zinc-600 hover:text-red-500 transition-colors relative z-20 p-1"><TrashIcon className="w-4 h-4" /></button>
                                 </div>
                                 <button 
-                                    onClick={() => handleRoute({ target_panel_id: preset.recommendedPanel, preset_data: { name: preset.name, description: preset.description, prompt: preset.applyPrompt } })}
+                                    onClick={() => handleRoute({ recommendedPanel: preset.recommendedPanel, name: preset.name, description: preset.description, applyPrompt: preset.applyPrompt })}
                                     className="w-full py-2 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all rounded-none relative z-20"
                                 >
                                     Inject Sequence
@@ -296,7 +288,6 @@ export const StyleExtractorPanel: React.FC<StyleExtractorPanelProps> = ({
          )}
       </div>
 
-      {/* Floating Execute Button to prevent occlusion */}
       <div className="absolute bottom-5 left-5 right-5 z-20 pointer-events-auto">
           <button
               onClick={routedStyle ? () => handleRoute() : handleExtract}
