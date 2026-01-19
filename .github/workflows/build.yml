@@ -46,26 +46,25 @@ jobs:
 
       - name: Prepare Workspace
         run: |
-          # Clean old platform data to ensure fresh UI styles are used
+          # Clean everything to prevent Whitelist class errors
           rm -rf platforms/
           rm -rf plugins/
+          rm -rf node_modules/
           
-          # Add the required platform and adapter
+          # Install core plugins and platform
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
-          
-          # FIX: This plugin is required to apply the security settings in config.xml
           cordova plugin add cordova-custom-config
+          
+          # DO NOT add cordova-plugin-whitelist here. It is built-in now.
 
       - name: Inject API Key and Patch URLs
         run: |
-          # 1. Inject the Gemini Key into your .env.local file
+          # Inject Gemini Key
           sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
-          
-          # 2. Inject the Gemini Key into any .js files (backup)
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
           
-          # 3. Patch local server URLs to point to your live Cloud Run site
+          # Redirect local server calls to your live Cloud Run site
           find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://localhost:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
           find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://0.0.0.0:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
 
