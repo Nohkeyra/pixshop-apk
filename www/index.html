@@ -5,18 +5,17 @@
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
-    <style>body { background-color: #ffffff; }</style>
 </head>
-<body>
+<body style="margin:0; padding:0; background-color: #ffffff;">
     <script>
         document.addEventListener('deviceready', () => {
-            // This is the strongest way to load your site.
-            // It ignores the 'index.html' redirect loops.
-            const url = "https://pixshop-core-396810488001.us-west1.run.app";
-            const target = "_self";
-            const options = "location=no,toolbar=no,zoom=no,hardwareback=yes";
+            // FIX: One continuous link with no spaces to prevent ABORTED error
+            const target = "https://pixshop-core-396810488001.us-west1.run.app/index.html";
             
-            cordova.InAppBrowser.open(url, target, options);
+            // Give the system 1 second to stabilize before connecting
+            setTimeout(() => {
+                window.location.replace(target);
+            }, 1000);
         }, false);
     </script>
 </body>
