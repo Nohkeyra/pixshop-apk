@@ -6,15 +6,12 @@
     <title>PixShop</title>
     <script src="cordova.js"></script>
 </head>
-<body style="margin:0; padding:0; background-color: #ffffff;">
+<body style="margin:0; background-color: #ffffff;">
     <script>
         document.addEventListener('deviceready', () => {
-            // Open the URL in a stable, integrated browser window
-            const url = "https://pixshop-core-396810488001.us-west1.run.app";
-            const target = "_self"; // Loads inside the app
-            const options = "location=no,toolbar=no,zoom=no";
-            
-            cordova.InAppBrowser.open(url, target, options);
+            // Replace the current local view with the live server view
+            // This stops the 'Transition to Front' loop with Chrome
+            window.location.replace("https://pixshop-core-396810488001.us-west1.run.app");
         }, false);
     </script>
 </body>
