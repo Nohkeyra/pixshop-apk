@@ -55,12 +55,19 @@ jobs:
           cordova plugin remove cordova-plugin-whitelist || true
           cordova plugin remove cordova-plugin-splashscreen || true
 
-      - name: Inject API Key
+      # This step injects your key and points the app to your live website
+      - name: Inject API Key and Fix URLs
         run: |
-          # Replaces placeholder in .env.local
+          # Inject the Gemini Key into .env.local
           sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
-          # Replaces placeholder in any JS files just in case
+          
+          # Replace any "PLACEHOLDER_API_KEY" text found in Javascript files
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
+          
+          # Replace local dev server (0.0.0.0 or localhost) with your live Cloud Run URL
+          # This helps fix the "Service Unavailable" error
+          find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://localhost:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
+          find www -type f \( -name "*.js" -o -name "*.html" \) -exec sed -i "s|http://0.0.0.0:8080|https://pixshop-core-396810488001.us-west1.run.app|g" {} +
 
       - name: Build Debug APK
         run: cordova build android --debug --verbose
