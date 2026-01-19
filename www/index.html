@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap:;">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PixShop</title>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap: https://pixshop-core-396810488001.us-west1.run.app;">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <title>PixShop</title>
+    <script src="cordova.js"></script>
 </head>
-<body style="margin:0">
-<iframe
-  src="https://pixshop-core-396810488001.us-west1.run.app"
-  style="border:none;width:100vw;height:100vh">
-</iframe>
+<body style="margin:0; overflow:hidden;">
+    <iframe
+      src="https://pixshop-core-396810488001.us-west1.run.app"
+      style="border:none; width:100vw; height:100vh; position:fixed; top:0; left:0;">
+    </iframe>
 </body>
 </html>
