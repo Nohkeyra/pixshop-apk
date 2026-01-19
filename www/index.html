@@ -5,17 +5,18 @@
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
+    <style>body { background-color: #ffffff; }</style>
 </head>
-<body style="margin:0; padding:0; background-color: #ffffff;">
+<body>
     <script>
         document.addEventListener('deviceready', () => {
-            // FIX: One solid link, no spaces.
-            const targetUrl = "https://pixshop-core-396810488001.us-west1.run.app/index.html";
+            // This is the strongest way to load your site.
+            // It ignores the 'index.html' redirect loops.
+            const url = "https://pixshop-core-396810488001.us-west1.run.app";
+            const target = "_self";
+            const options = "location=no,toolbar=no,zoom=no,hardwareback=yes";
             
-            // Give the Pixel 7 a moment to initialize the network
-            setTimeout(() => {
-                window.location.replace(targetUrl);
-            }, 1000);
+            cordova.InAppBrowser.open(url, target, options);
         }, false);
     </script>
 </body>
