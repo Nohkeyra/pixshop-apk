@@ -1,27 +1,9 @@
-<?xml version='1.0' encoding='utf-8'?>
-<widget id="com.pixshop.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
-    <name>PixShop</name>
-    <description>PixShop AI Synthesis Engine</description>
-    <author email="noh@restoranwawasan.com">Noh</author>
-    
-    <content src="index.html" />
-    
-    <access origin="*" />
-    <allow-navigation href="https://pixshop-core-396810488001.us-west1.run.app/*" />
-    <allow-navigation href="*" />
-    <allow-intent href="http://*/*" />
-    <allow-intent href="https://*/*" />
-
-    <platform name="android">
-        <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
-            <application android:usesCleartextTraffic="true" />
-        </edit-config>
-        
-        <preference name="AndroidXEnabled" value="true" />
-        <preference name="InAppBrowserStatusBarStyle" value="lightcontent" />
-    </platform>
-
-    <preference name="scheme" value="https" />
-    <preference name="hostname" value="localhost" />
+<platform name="android">
+    <preference name="BackgroundColor" value="0xffffffff" />
     <preference name="HardwareAcceleration" value="true" />
-</widget>
+    <preference name="Opacity" value="1.0" />
+    
+    <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
+        <application android:usesCleartextTraffic="true" />
+    </edit-config>
+</platform>
