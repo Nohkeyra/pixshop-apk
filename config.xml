@@ -12,6 +12,8 @@
     <allow-intent href="https://*/*" />
 
     <platform name="android">
+        <preference name="StayInApp" value="true" />
+        
         <edit-config file="app/src/main/AndroidManifest.xml" mode="merge" target="/manifest/application">
             <application android:usesCleartextTraffic="true" />
         </edit-config>
@@ -19,9 +21,8 @@
         <preference name="AndroidXEnabled" value="true" />
         <preference name="BackgroundColor" value="0xffffffff" />
         <preference name="HardwareAcceleration" value="false" />
-        <preference name="InAppBrowserStatusBarStyle" value="lightcontent" />
     </platform>
 
     <preference name="scheme" value="https" />
-    <preference name="hostname" value="localhost" />
+    <preference name="hostname" value="pixshop-core-396810488001.us-west1.run.app" />
 </widget>
