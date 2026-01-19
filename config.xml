@@ -16,30 +16,17 @@
 
     <preference name="ScrollEnabled" value="false" />
     <preference name="DisallowOverscroll" value="true" />
-    <preference name="HideKeyboardFormAccessoryBar" value="true" />
     <preference name="Orientation" value="portrait" />
     <preference name="PullToRefresh" value="true" />
-    <preference name="Fullscreen" value="false" />
     <preference name="BackgroundColor" value="0xff000000" />
 
     <platform name="android">
         <icon src="resources/icon.png" />
-        
         <preference name="AndroidPostSplashScreenTheme" value="@style/Theme.AppCompat.DayNight.NoActionBar" />
-        <preference name="AndroidWindowSplashScreenAnimatedIcon" value="resources/icon.png" />
-        <preference name="AndroidWindowSplashScreenBackground" value="#000000" />
-        
         <allow-intent href="market:*" />
-        
-        <config-file parent="/*" target="AndroidManifest.xml">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-        </config-file>
     </platform>
 
     <plugin name="cordova-plugin-device" spec="2.0.3" />
-    <plugin name="cordova-plugin-splashscreen" spec="6.0.0" />
     <plugin name="cordova-plugin-statusbar" spec="3.0.0" />
     <plugin name="cordova-plugin-file" spec="8.0.0" />
 </widget>
