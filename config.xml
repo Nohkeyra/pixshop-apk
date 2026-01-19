@@ -25,4 +25,5 @@
 
     <preference name="scheme" value="https" />
     <preference name="hostname" value="pixshop-core-396810488001.us-west1.run.app" />
+    <preference name="loadUrlTimeoutValue" value="60000" />
 </widget>
