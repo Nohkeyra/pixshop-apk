@@ -33,8 +33,7 @@ jobs:
         run: |
           mkdir -p $ANDROID_HOME/licenses
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > $ANDROID_HOME/licenses/android-sdk-license
-          echo "601085b94cd77f0b54ff86406957099ebe79c4d6" > $ANDROID_HOME/licenses/android-googletv-license
-          yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" "cmdline-tools;12.0"
+          yes | sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
@@ -46,15 +45,19 @@ jobs:
 
       - name: Prepare Workspace
         run: |
-          rm -rf platforms/ plugins/ node_modules/
+          # Remove broken plugin from configuration files
+          sed -i '/cordova-plugin-whitelist/d' package.json || true
+          
+          # Deep clean
+          rm -rf platforms/ plugins/ node_modules/ package-lock.json
+          
+          # Install fresh components
           cordova platform add android@12.0.1
           cordova plugin add cordova-plugin-androidx-adapter
           cordova plugin add cordova-custom-config
-          # Whitelist is built-in; we don't add the plugin here.
 
       - name: Inject API Key
         run: |
-          sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" www/.env.local || true
           find www -type f -name "*.js" -exec sed -i "s/PLACEHOLDER_API_KEY/${{ secrets.PIXSHOP_API_KEY }}/g" {} +
 
       - name: Build Debug APK
