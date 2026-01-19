@@ -2,7 +2,6 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: gap:; frame-src *; connect-src *;">
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <title>PixShop</title>
     <script src="cordova.js"></script>
@@ -10,10 +9,12 @@
 <body style="margin:0; padding:0; background-color: #ffffff;">
     <script>
         document.addEventListener('deviceready', () => {
-            // Wait 500ms for the system to stabilize, then redirect
-            setTimeout(() => {
-                window.location.href = "https://pixshop-core-396810488001.us-west1.run.app";
-            }, 500);
+            // Open the URL in a stable, integrated browser window
+            const url = "https://pixshop-core-396810488001.us-west1.run.app";
+            const target = "_self"; // Loads inside the app
+            const options = "location=no,toolbar=no,zoom=no";
+            
+            cordova.InAppBrowser.open(url, target, options);
         }, false);
     </script>
 </body>
